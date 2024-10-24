@@ -1,180 +1,170 @@
 using System;
-using System.Collections.Generic;
+using System.Threading;
 
-namespace Foundation2
+class MindfulnessActivity
 {
-    // Address Class
-    public class Address
+    protected string activityName;
+    protected string description;
+    protected int duration;
+
+    public MindfulnessActivity(string name, string desc)
     {
-        private string street;
-        private string city;
-        private string state;
-        private string country;
-
-        public Address(string street, string city, string state, string country)
-        {
-            this.street = street;
-            this.city = city;
-            this.state = state;
-            this.country = country;
-        }
-
-        public bool IsInUSA()
-        {
-            return country == "USA";
-        }
-
-        public string DisplayAddress()
-        {
-            return $"{street}\n{city}, {state}\n{country}";
-        }
+        activityName = name;
+        description = desc;
     }
 
-    // Customer Class
-    public class Customer
+    public void StartActivity()
     {
-        private string name;
-        private Address address;
+        Console.WriteLine($"Starting: {activityName}");
+        Console.WriteLine(description);
+        Console.Write("Enter the duration of the activity in seconds: ");
+        duration = int.Parse(Console.ReadLine());
 
-        public Customer(string name, Address address)
-        {
-            this.name = name;
-            this.address = address;
-        }
-
-        public bool IsUSAResident()
-        {
-            return address.IsInUSA();
-        }
-
-        public string GetName()
-        {
-            return name;
-        }
-
-        public Address GetAddress()
-        {
-            return address;
-        }
+        Console.WriteLine("Prepare to begin...");
+        PauseWithAnimation(3);
     }
 
-    // Product Class
-    public class Product
+    public void EndActivity()
     {
-        private string productName;
-        private string productId;
-        private double price;
-        private int quantity;
-
-        public Product(string productName, string productId, double price, int quantity)
-        {
-            this.productName = productName;
-            this.productId = productId;
-            this.price = price;
-            this.quantity = quantity;
-        }
-
-        public double GetTotalCost()
-        {
-            return price * quantity;
-        }
-
-        public string GetProductName()
-        {
-            return productName;
-        }
-
-        public string GetProductId()
-        {
-            return productId;
-        }
+        Console.WriteLine($"Good job! You've completed the {activityName} for {duration} seconds.");
+        PauseWithAnimation(3);
     }
 
-    // Order Class
-    public class Order
+    protected void PauseWithAnimation(int seconds)
     {
-        private List<Product> products;
-        private Customer customer;
-
-        public Order(Customer customer)
+        for (int i = 0; i < seconds; i++)
         {
-            products = new List<Product>();
-            this.customer = customer;
+            Console.Write(".");
+            Thread.Sleep(1000); // 1-second pause for animation
+        }
+        Console.WriteLine();
+    }
+}
+
+class BreathingActivity : MindfulnessActivity
+{
+    public BreathingActivity() : base("Breathing Activity", "This activity will help you relax by guiding you through slow breathing.") { }
+
+    public void Run()
+    {
+        StartActivity();
+        for (int i = 0; i < duration; i += 6)
+        {
+            Console.WriteLine("Breathe in...");
+            PauseWithAnimation(3);
+            Console.WriteLine("Breathe out...");
+            PauseWithAnimation(3);
+        }
+        EndActivity();
+    }
+}
+
+class ReflectionActivity : MindfulnessActivity
+{
+    private string[] prompts = {
+        "Think of a time when you stood up for someone else.",
+        "Think of a time when you did something really difficult.",
+        "Think of a time when you helped someone in need.",
+        "Think of a time when you did something truly selfless."
+    };
+
+    private string[] questions = {
+        "Why was this experience meaningful to you?",
+        "Have you ever done anything like this before?",
+        "How did you get started?",
+        "How did you feel when it was complete?",
+        "What made this time different than other times?",
+        "What is your favorite thing about this experience?",
+        "What did you learn about yourself through this experience?",
+        "How can you apply this experience in the future?"
+    };
+
+    public ReflectionActivity() : base("Reflection Activity", "This activity will help you reflect on your strengths and resilience.") { }
+
+    public void Run()
+    {
+        StartActivity();
+        Random random = new Random();
+        Console.WriteLine(prompts[random.Next(prompts.Length)]);
+
+        for (int i = 0; i < duration; i += 5)
+        {
+            Console.WriteLine(questions[random.Next(questions.Length)]);
+            PauseWithAnimation(5);
+        }
+        EndActivity();
+    }
+}
+
+class ListingActivity : MindfulnessActivity
+{
+    private string[] prompts = {
+        "Who are people that you appreciate?",
+        "What are personal strengths of yours?",
+        "Who are people that you have helped this week?",
+        "When have you felt the Holy Ghost this month?",
+        "Who are some of your personal heroes?"
+    };
+
+    public ListingActivity() : base("Listing Activity", "This activity helps you reflect by listing positive things in your life.") { }
+
+    public void Run()
+    {
+        StartActivity();
+        Random random = new Random();
+        Console.WriteLine(prompts[random.Next(prompts.Length)]);
+        Console.WriteLine("Start listing items:");
+
+        int itemCount = 0;
+        DateTime endTime = DateTime.Now.AddSeconds(duration);
+        while (DateTime.Now < endTime)
+        {
+            Console.Write($"Item {++itemCount}: ");
+            Console.ReadLine();
         }
 
-        public void AddProduct(Product product)
-        {
-            products.Add(product);
-        }
+        Console.WriteLine($"You listed {itemCount} items.");
+        EndActivity();
+    }
+}
 
-        public double CalculateTotalCost()
+class Program
+{
+    static void Main(string[] args)
+    {
+        while (true)
         {
-            double totalCost = 0;
-            foreach (Product product in products)
+            Console.WriteLine("Choose an activity:");
+            Console.WriteLine("1. Breathing Activity");
+            Console.WriteLine("2. Reflection Activity");
+            Console.WriteLine("3. Listing Activity");
+            Console.WriteLine("4. Quit");
+
+            string choice = Console.ReadLine();
+
+            if (choice == "1")
             {
-                totalCost += product.GetTotalCost();
+                BreathingActivity breathing = new BreathingActivity();
+                breathing.Run();
             }
-
-            // Add shipping cost
-            totalCost += customer.IsUSAResident() ? 5 : 35;
-            return totalCost;
-        }
-
-        public string GetPackingLabel()
-        {
-            string label = "Packing Label:\n";
-            foreach (Product product in products)
+            else if (choice == "2")
             {
-                label += $"{product.GetProductName()} (ID: {product.GetProductId()})\n";
+                ReflectionActivity reflection = new ReflectionActivity();
+                reflection.Run();
             }
-            return label;
-        }
-
-        public string GetShippingLabel()
-        {
-            return $"Shipping Label:\n{customer.GetName()}\n{customer.GetAddress().DisplayAddress()}";
-        }
-    }
-
-    // Program Class
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            // Create Address instances
-            Address address1 = new Address("123 Main St", "Los Angeles", "CA", "USA");
-            Address address2 = new Address("456 Another Rd", "Toronto", "ON", "Canada");
-
-            // Create Customer instances
-            Customer customer1 = new Customer("John Doe", address1);
-            Customer customer2 = new Customer("Jane Smith", address2);
-
-            // Create Product instances
-            Product product1 = new Product("Laptop", "LP123", 1200.99, 1);
-            Product product2 = new Product("Mouse", "MS456", 25.50, 2);
-            Product product3 = new Product("Keyboard", "KB789", 75.00, 1);
-
-            Product product4 = new Product("Monitor", "MN321", 300.00, 1);
-            Product product5 = new Product("Desk Lamp", "DL654", 40.75, 2);
-
-            // Create Order instances
-            Order order1 = new Order(customer1);
-            order1.AddProduct(product1);
-            order1.AddProduct(product2);
-            order1.AddProduct(product3);
-
-            Order order2 = new Order(customer2);
-            order2.AddProduct(product4);
-            order2.AddProduct(product5);
-
-            // Display order details
-            Console.WriteLine(order1.GetPackingLabel());
-            Console.WriteLine(order1.GetShippingLabel());
-            Console.WriteLine($"Total Cost: ${order1.CalculateTotalCost()}\n");
-
-            Console.WriteLine(order2.GetPackingLabel());
-            Console.WriteLine(order2.GetShippingLabel());
-            Console.WriteLine($"Total Cost: ${order2.CalculateTotalCost()}");
+            else if (choice == "3")
+            {
+                ListingActivity listing = new ListingActivity();
+                listing.Run();
+            }
+            else if (choice == "4")
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Invalid choice. Please try again.");
+            }
         }
     }
 }

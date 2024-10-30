@@ -1,170 +1,143 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
 
-class MindfulnessActivity
+// Abstract base class for all activities
+public abstract class Activity
 {
-    protected string activityName;
-    protected string description;
-    protected int duration;
+    // Protected attributes to allow access in derived classes
+    protected DateTime _date;
+    protected int _minutes;
 
-    public MindfulnessActivity(string name, string desc)
+    // Constructor
+    protected Activity(DateTime date, int minutes)
     {
-        activityName = name;
-        description = desc;
+        _date = date;
+        _minutes = minutes;
     }
 
-    public void StartActivity()
-    {
-        Console.WriteLine($"Starting: {activityName}");
-        Console.WriteLine(description);
-        Console.Write("Enter the duration of the activity in seconds: ");
-        duration = int.Parse(Console.ReadLine());
+    // Public properties to expose date and minutes
+    public DateTime Date => _date;
+    public int Minutes => _minutes;
 
-        Console.WriteLine("Prepare to begin...");
-        PauseWithAnimation(3);
-    }
+    // Virtual methods for derived classes to override
+    public virtual double GetDistance() => 0; // Default implementation returns 0
+    public virtual double GetSpeed() => 0;    // Default implementation returns 0
+    public virtual double GetPace() => 0;     // Default implementation returns 0
 
-    public void EndActivity()
+    // GetSummary method that calls virtual methods
+    public virtual string GetSummary()
     {
-        Console.WriteLine($"Good job! You've completed the {activityName} for {duration} seconds.");
-        PauseWithAnimation(3);
-    }
-
-    protected void PauseWithAnimation(int seconds)
-    {
-        for (int i = 0; i < seconds; i++)
-        {
-            Console.Write(".");
-            Thread.Sleep(1000); // 1-second pause for animation
-        }
-        Console.WriteLine();
+        return $"{_date:dd MMM yyyy} {GetType().Name} ({_minutes} min) - " +
+               $"Distance {GetDistance():F1}, Speed {GetSpeed():F1}, Pace: {GetPace():F1}";
     }
 }
 
-class BreathingActivity : MindfulnessActivity
+// Derived class for Running
+public class Running : Activity
 {
-    public BreathingActivity() : base("Breathing Activity", "This activity will help you relax by guiding you through slow breathing.") { }
+    // Private attribute for distance
+    private double _distance; // in miles
 
-    public void Run()
+    public Running(DateTime date, int minutes, double distance) : base(date, minutes)
     {
-        StartActivity();
-        for (int i = 0; i < duration; i += 6)
-        {
-            Console.WriteLine("Breathe in...");
-            PauseWithAnimation(3);
-            Console.WriteLine("Breathe out...");
-            PauseWithAnimation(3);
-        }
-        EndActivity();
+        _distance = distance;
+    }
+
+    // Override methods to provide specific implementations
+    public override double GetDistance()
+    {
+        return _distance;
+    }
+
+    public override double GetSpeed()
+    {
+        return (GetDistance() / Minutes) * 60; // Speed in mph
+    }
+
+    public override double GetPace()
+    {
+        return Minutes / GetDistance(); // Pace in minutes per mile
     }
 }
 
-class ReflectionActivity : MindfulnessActivity
+// Derived class for Cycling
+public class Cycling : Activity
 {
-    private string[] prompts = {
-        "Think of a time when you stood up for someone else.",
-        "Think of a time when you did something really difficult.",
-        "Think of a time when you helped someone in need.",
-        "Think of a time when you did something truly selfless."
-    };
+    // Private attribute for speed
+    private double _speed; // in mph
 
-    private string[] questions = {
-        "Why was this experience meaningful to you?",
-        "Have you ever done anything like this before?",
-        "How did you get started?",
-        "How did you feel when it was complete?",
-        "What made this time different than other times?",
-        "What is your favorite thing about this experience?",
-        "What did you learn about yourself through this experience?",
-        "How can you apply this experience in the future?"
-    };
-
-    public ReflectionActivity() : base("Reflection Activity", "This activity will help you reflect on your strengths and resilience.") { }
-
-    public void Run()
+    public Cycling(DateTime date, int minutes, double speed) : base(date, minutes)
     {
-        StartActivity();
-        Random random = new Random();
-        Console.WriteLine(prompts[random.Next(prompts.Length)]);
+        _speed = speed;
+    }
 
-        for (int i = 0; i < duration; i += 5)
-        {
-            Console.WriteLine(questions[random.Next(questions.Length)]);
-            PauseWithAnimation(5);
-        }
-        EndActivity();
+    // Override methods to provide specific implementations
+    public override double GetDistance()
+    {
+        return (GetSpeed() * Minutes) / 60; // Distance in miles
+    }
+
+    public override double GetSpeed()
+    {
+        return _speed; // Speed is already in mph
+    }
+
+    public override double GetPace()
+    {
+        return 60 / GetSpeed(); // Pace in minutes per mile
     }
 }
 
-class ListingActivity : MindfulnessActivity
+// Derived class for Swimming
+public class Swimming : Activity
 {
-    private string[] prompts = {
-        "Who are people that you appreciate?",
-        "What are personal strengths of yours?",
-        "Who are people that you have helped this week?",
-        "When have you felt the Holy Ghost this month?",
-        "Who are some of your personal heroes?"
-    };
+    // Private attribute for laps
+    private int _laps;
 
-    public ListingActivity() : base("Listing Activity", "This activity helps you reflect by listing positive things in your life.") { }
-
-    public void Run()
+    public Swimming(DateTime date, int minutes, int laps) : base(date, minutes)
     {
-        StartActivity();
-        Random random = new Random();
-        Console.WriteLine(prompts[random.Next(prompts.Length)]);
-        Console.WriteLine("Start listing items:");
+        _laps = laps;
+    }
 
-        int itemCount = 0;
-        DateTime endTime = DateTime.Now.AddSeconds(duration);
-        while (DateTime.Now < endTime)
-        {
-            Console.Write($"Item {++itemCount}: ");
-            Console.ReadLine();
-        }
+    // Override methods to provide specific implementations
+    public override double GetDistance()
+    {
+        return (_laps * 50) / 1000.0; // Distance in kilometers
+    }
 
-        Console.WriteLine($"You listed {itemCount} items.");
-        EndActivity();
+    public override double GetSpeed()
+    {
+        return (GetDistance() / Minutes) * 60; // Speed in kph
+    }
+
+    public override double GetPace()
+    {
+        return Minutes / GetDistance(); // Pace in minutes per kilometer
+    }
+
+    public override string GetSummary()
+    {
+        return $"{base.GetSummary()} (Laps: {_laps})";
     }
 }
 
+// Main program class to run the application
 class Program
 {
     static void Main(string[] args)
     {
-        while (true)
+        // Create a list to store activities
+        List<Activity> activities = new List<Activity>
         {
-            Console.WriteLine("Choose an activity:");
-            Console.WriteLine("1. Breathing Activity");
-            Console.WriteLine("2. Reflection Activity");
-            Console.WriteLine("3. Listing Activity");
-            Console.WriteLine("4. Quit");
+            new Running(new DateTime(2022, 11, 3), 30, 3.0),
+            new Cycling(new DateTime(2022, 11, 4), 45, 15.0),
+            new Swimming(new DateTime(2022, 11, 5), 20, 10)
+        };
 
-            string choice = Console.ReadLine();
-
-            if (choice == "1")
-            {
-                BreathingActivity breathing = new BreathingActivity();
-                breathing.Run();
-            }
-            else if (choice == "2")
-            {
-                ReflectionActivity reflection = new ReflectionActivity();
-                reflection.Run();
-            }
-            else if (choice == "3")
-            {
-                ListingActivity listing = new ListingActivity();
-                listing.Run();
-            }
-            else if (choice == "4")
-            {
-                break;
-            }
-            else
-            {
-                Console.WriteLine("Invalid choice. Please try again.");
-            }
+        // Display the summary of each activity
+        foreach (var activity in activities)
+        {
+            Console.WriteLine(activity.GetSummary());
         }
     }
 }
